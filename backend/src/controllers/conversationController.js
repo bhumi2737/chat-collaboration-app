@@ -1,5 +1,6 @@
 import { conversationRepository } from '../repositories/conversationRepository.js';
 import { userRepository } from '../repositories/userRepository.js';
+import { messageRepository } from '../repositories/messageRepository.js';
 
 export const conversationController = {
   async listConversations(req, res) {
@@ -238,6 +239,51 @@ export const conversationController = {
     } catch (error) {
       console.error('Error marking as read:', error);
       return res.status(500).json({ message: 'Failed to mark conversation as read.' });
+    }
+  },
+
+  async deleteConversation(req, res) {
+    try {
+      const { id } = req.params;
+      const conv = await conversationRepository.findById(id);
+      if (!conv) {
+        return res.status(404).json({ message: 'Conversation not found.' });
+      }
+
+      const isMember = conv.participants.some((p) => p.userId === req.user.id);
+      if (!isMember) {
+        return res.status(403).json({ message: 'Access denied: You are not a member of this conversation.' });
+      }
+
+      // If group conversation, only group admin or creator can delete the entire group
+      if (conv.type === 'group') {
+        const membership = conv.participants.find((p) => p.userId === req.user.id);
+        const isAdmin = membership?.role === 'admin' || conv.createdBy === req.user.id;
+        if (!isAdmin) {
+          return res.status(403).json({ message: 'Only group admins can delete the entire group chat.' });
+        }
+      }
+
+      const participantIds = conv.participants.map((p) => p.userId);
+
+      await conversationRepository.delete(id);
+
+      const io = req.app.get('io');
+      if (io) {
+        // Emit to room and to individual participant rooms
+        io.to(`conversation:${id}`).emit('conversation:removed', { conversationId: id });
+        io.to(`conversation:${id}`).emit('conversation:deleted', { conversationId: id });
+
+        for (const userId of participantIds) {
+          io.to(`user:${userId}`).emit('conversation:removed', { conversationId: id });
+          io.to(`user:${userId}`).emit('conversation:deleted', { conversationId: id });
+        }
+      }
+
+      return res.status(200).json({ success: true, conversationId: id, message: 'Conversation deleted successfully.' });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      return res.status(500).json({ message: 'Failed to delete conversation.' });
     }
   }
 };

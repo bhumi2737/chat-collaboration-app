@@ -31,6 +31,7 @@ export const messageRepository = {
       memoryStore.messagesByConversation.set(conversationId, list);
     }
     list.push(id);
+    memoryStore.saveMessages();
 
     return JSON.parse(JSON.stringify(message));
   },
@@ -62,6 +63,7 @@ export const messageRepository = {
     msg.isEdited = true;
     msg.editedAt = new Date();
     msg.updatedAt = new Date();
+    memoryStore.saveMessages();
 
     return JSON.parse(JSON.stringify(msg));
   },
@@ -74,6 +76,7 @@ export const messageRepository = {
     msg.text = 'This message was deleted';
     msg.deletedAt = new Date();
     msg.updatedAt = new Date();
+    memoryStore.saveMessages();
 
     return JSON.parse(JSON.stringify(msg));
   },
@@ -93,6 +96,10 @@ export const messageRepository = {
           updatedIds.push(mid);
         }
       }
+    }
+
+    if (updatedIds.length > 0) {
+      memoryStore.saveMessages();
     }
 
     return updatedIds;
@@ -120,6 +127,7 @@ export const messageRepository = {
     }
 
     msg.updatedAt = new Date();
+    memoryStore.saveMessages();
     return JSON.parse(JSON.stringify(msg));
   }
 };

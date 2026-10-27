@@ -19,6 +19,7 @@ export const userRepository = {
     memoryStore.users.set(id, user);
     memoryStore.usersByEmail.set(user.email, id);
     memoryStore.usersByUsername.set(user.username.toLowerCase(), id);
+    memoryStore.saveUsers();
 
     return this.sanitizeUser(user);
   },
@@ -75,6 +76,7 @@ export const userRepository = {
       updatedAt: new Date()
     };
     memoryStore.users.set(id, updated);
+    memoryStore.saveUsers();
     return this.sanitizeUser(updated);
   },
 

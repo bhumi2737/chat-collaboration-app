@@ -2495,3 +2495,72 @@ button {
   color: var(--ivory);
 }
 
+/* ==========================================================================
+   Delete Conversation Buttons & Item Actions
+   ========================================================================== */
+.btn-delete-convo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-delete-convo:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.btn-delete-convo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.item-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-sidebar-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary, #9ca3af);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.conversation-item:hover .btn-sidebar-delete {
+  opacity: 0.85;
+}
+
+.btn-sidebar-delete:hover {
+  opacity: 1 !important;
+  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.12);
+}
+
+.modal-actions-split {
+  justify-content: space-between;
+}
+
+

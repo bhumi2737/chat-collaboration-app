@@ -1,0 +1,35 @@
+[
+  {
+    "id": "6347c083-0206-4b07-ba26-9e369de799c3",
+    "username": "bhumi27",
+    "email": "bhumiuppal@gmail.com",
+    "password": "$2a$10$2K7J7Teby94LjwpbRMhfx.NNf/tnTmucnh5uvWXISRsCWwaFZB1ae",
+    "fullName": "Bhumi",
+    "avatarUrl": "https://api.dicebear.com/7.x/initials/svg?seed=Bhumi",
+    "statusMessage": "Available to collaborate",
+    "createdAt": "2026-10-27T14:21:42.756Z",
+    "updatedAt": "2026-10-27T14:21:42.756Z"
+  },
+  {
+    "id": "8f790593-3228-4a9f-a0b7-bdff50a70764",
+    "username": "japnoor06",
+    "email": "japnoor@gmail.com",
+    "password": "$2a$10$2qheNr2Fa.icQ6kDe5U0iOD2kN3Hm.6mV6MjoAWieQW7B5oAGz1mG",
+    "fullName": "japnoor",
+    "avatarUrl": "https://api.dicebear.com/7.x/initials/svg?seed=japnoor",
+    "statusMessage": "Available to collaborate",
+    "createdAt": "2026-10-27T14:23:21.755Z",
+    "updatedAt": "2026-10-27T14:23:21.755Z"
+  },
+  {
+    "id": "39688302-9826-492f-a52b-5e08774ef3a9",
+    "username": "keshav29",
+    "email": "keshav@gmail.com",
+    "password": "$2a$10$m9kWveawASmuG8tSz.eDoOV4eqzpRTlXOGUdbV7ZBH5tV4Fb5Qfl6",
+    "fullName": "keshav",
+    "avatarUrl": "https://api.dicebear.com/7.x/initials/svg?seed=keshav",
+    "statusMessage": "Available to collaborate",
+    "createdAt": "2026-10-27T14:25:32.955Z",
+    "updatedAt": "2026-10-27T14:25:32.955Z"
+  }
+]

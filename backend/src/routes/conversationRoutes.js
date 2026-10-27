@@ -12,6 +12,7 @@ router.post('/direct', conversationController.createDirect);
 router.post('/group', conversationController.createGroup);
 router.get('/:id', conversationController.getConversation);
 router.put('/:id', conversationController.updateGroup);
+router.delete('/:id', conversationController.deleteConversation);
 router.post('/:id/members', conversationController.addMember);
 router.delete('/:id/members/:userId', conversationController.removeMember);
 router.post('/:id/read', conversationController.markAsRead);

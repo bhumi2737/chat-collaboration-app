@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 import { useSocket } from '../../context/SocketContext';
 import { MessageBubble } from './MessageBubble';
@@ -6,6 +7,7 @@ import { TypingIndicator } from './TypingIndicator';
 import { EditMessageModal } from '../modals/EditMessageModal';
 
 export const ChatArea = ({ onOpenGroupDetails, onBackToSidebar, isGroupDetailsOpen }) => {
+  const { user: currentUser } = useAuth();
   const {
     activeConversation,
     activeConversationId,
@@ -15,6 +17,7 @@ export const ChatArea = ({ onOpenGroupDetails, onBackToSidebar, isGroupDetailsOp
     sendMessage,
     editMessage,
     deleteMessage,
+    deleteConversation,
     startTyping,
     stopTyping
   } = useChat();
@@ -22,6 +25,7 @@ export const ChatArea = ({ onOpenGroupDetails, onBackToSidebar, isGroupDetailsOp
   const { isUserOnline } = useSocket();
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isDeletingChat, setIsDeletingChat] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
 
   const messagesEndRef = useRef(null);
@@ -91,6 +95,28 @@ export const ChatArea = ({ onOpenGroupDetails, onBackToSidebar, isGroupDetailsOp
         await deleteMessage(msg.id);
       } catch (err) {
         alert(err.message || 'Failed to delete message');
+      }
+    }
+  };
+
+  const isGroup = activeConversation?.type === 'group';
+  const currentMembership = activeConversation?.participants?.find((p) => p.id === currentUser?.id);
+  const isGroupAdmin = isGroup && (currentMembership?.role === 'admin' || activeConversation?.createdBy === currentUser?.id);
+  const canDelete = isDirect || isGroupAdmin;
+
+  const handleDeleteConversation = async () => {
+    const confirmMessage = isDirect
+      ? `Delete chat with ${activeConversation.displayName}? All messages and history will be permanently deleted for both participants.`
+      : `Delete group "${activeConversation.name}"? This will permanently delete the group and all its messages for everyone.`;
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        setIsDeletingChat(true);
+        await deleteConversation(activeConversation.id);
+      } catch (err) {
+        alert(err.message || 'Failed to delete conversation');
+      } finally {
+        setIsDeletingChat(false);
       }
     }
   };
@@ -210,6 +236,24 @@ export const ChatArea = ({ onOpenGroupDetails, onBackToSidebar, isGroupDetailsOp
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
               <span>Members ({activeConversation.participants?.length || 0})</span>
+            </button>
+          )}
+
+          {canDelete && (
+            <button
+              type="button"
+              className="btn-delete-convo"
+              onClick={handleDeleteConversation}
+              disabled={isDeletingChat}
+              title={isDirect ? 'Delete whole chat' : 'Delete group for everyone'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              <span>{isDeletingChat ? 'Deleting...' : 'Delete Chat'}</span>
             </button>
           )}
         </div>

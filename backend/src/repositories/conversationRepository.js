@@ -47,6 +47,7 @@ export const conversationRepository = {
     memoryStore.messagesByConversation.set(id, []);
     memoryStore.unreadCounts.set(`${id}:${user1Id}`, 0);
     memoryStore.unreadCounts.set(`${id}:${user2Id}`, 0);
+    memoryStore.saveConversations();
 
     return JSON.parse(JSON.stringify(conv));
   },
@@ -82,6 +83,7 @@ export const conversationRepository = {
     for (const userId of uniqueIds) {
       memoryStore.unreadCounts.set(`${id}:${userId}`, 0);
     }
+    memoryStore.saveConversations();
 
     return JSON.parse(JSON.stringify(conv));
   },
@@ -124,6 +126,7 @@ export const conversationRepository = {
       });
       conv.updatedAt = new Date();
       memoryStore.unreadCounts.set(`${conversationId}:${userId}`, 0);
+      memoryStore.saveConversations();
     }
 
     return JSON.parse(JSON.stringify(conv));
@@ -136,6 +139,7 @@ export const conversationRepository = {
     conv.participants = conv.participants.filter((p) => p.userId !== userId);
     conv.updatedAt = new Date();
     memoryStore.unreadCounts.delete(`${conversationId}:${userId}`);
+    memoryStore.saveConversations();
 
     return JSON.parse(JSON.stringify(conv));
   },
@@ -147,6 +151,7 @@ export const conversationRepository = {
     if (data.name !== undefined) conv.name = data.name.trim();
     if (data.description !== undefined) conv.description = data.description.trim();
     conv.updatedAt = new Date();
+    memoryStore.saveConversations();
 
     return JSON.parse(JSON.stringify(conv));
   },
@@ -156,6 +161,7 @@ export const conversationRepository = {
     if (!conv) return;
     conv.lastMessage = messageSummary;
     conv.updatedAt = new Date();
+    memoryStore.saveConversations();
   },
 
   async getUnreadCount(conversationId, userId) {
@@ -207,5 +213,28 @@ export const conversationRepository = {
     }
 
     return copy;
+  },
+
+  async delete(conversationId) {
+    const conv = memoryStore.conversations.get(conversationId);
+    if (!conv) return false;
+
+    // Delete all messages belonging to this conversation
+    const messageIds = memoryStore.messagesByConversation.get(conversationId) || [];
+    for (const msgId of messageIds) {
+      memoryStore.messages.delete(msgId);
+    }
+    memoryStore.messagesByConversation.delete(conversationId);
+
+    // Delete all unread count entries for this conversation
+    for (const p of conv.participants) {
+      memoryStore.unreadCounts.delete(`${conversationId}:${p.userId}`);
+    }
+
+    // Delete conversation itself
+    memoryStore.conversations.delete(conversationId);
+    memoryStore.saveConversations();
+    memoryStore.saveMessages();
+    return true;
   }
 };

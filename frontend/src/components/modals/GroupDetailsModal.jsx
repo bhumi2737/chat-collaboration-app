@@ -10,7 +10,8 @@ export const GroupDetailsModal = ({ onClose }) => {
     activeConversation,
     updateGroupInfo,
     addGroupMember,
-    removeGroupMember
+    removeGroupMember,
+    deleteConversation
   } = useChat();
   const { isUserOnline } = useSocket();
 
@@ -95,6 +96,25 @@ export const GroupDetailsModal = ({ onClose }) => {
         }
       } catch (err) {
         setError(err.message || 'Failed to remove member');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete the group "${activeConversation.name}"? This will permanently delete the group and all its messages for all members.`
+      )
+    ) {
+      setIsSubmitting(true);
+      setError(null);
+      try {
+        await deleteConversation(activeConversation.id);
+        onClose();
+      } catch (err) {
+        setError(err.message || 'Failed to delete group');
       } finally {
         setIsSubmitting(false);
       }
@@ -274,7 +294,19 @@ export const GroupDetailsModal = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="modal-actions">
+        <div className="modal-actions modal-actions-split">
+          {isAdmin ? (
+            <button
+              type="button"
+              className="btn-danger-outline"
+              onClick={handleDeleteGroup}
+              disabled={isSubmitting}
+            >
+              Delete Group For Everyone
+            </button>
+          ) : (
+            <div />
+          )}
           <button type="button" className="btn-secondary" onClick={onClose}>
             Close
           </button>

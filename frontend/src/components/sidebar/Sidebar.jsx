@@ -4,7 +4,13 @@ import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar = ({ onOpenNewChat, onOpenNewGroup }) => {
-  const { conversations, activeConversationId, selectConversation, isLoadingConversations } = useChat();
+  const {
+    conversations,
+    activeConversationId,
+    selectConversation,
+    deleteConversation,
+    isLoadingConversations
+  } = useChat();
   const { isUserOnline } = useSocket();
   const { user: currentUser } = useAuth();
 
@@ -42,6 +48,32 @@ export const Sidebar = ({ onOpenNewChat, onOpenNewGroup }) => {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  const handleDeleteConversation = async (e, conv) => {
+    e.stopPropagation();
+    const isDirect = conv.type === 'direct';
+    const isGroupAdmin =
+      conv.type === 'group' &&
+      (conv.createdBy === currentUser?.id ||
+        conv.participants?.some((p) => p.id === currentUser?.id && p.role === 'admin'));
+
+    if (conv.type === 'group' && !isGroupAdmin) {
+      alert('Only group admins can delete this group.');
+      return;
+    }
+
+    const confirmMessage = isDirect
+      ? `Delete chat with ${conv.displayName}? This will permanently delete the conversation and messages for both users.`
+      : `Delete group "${conv.displayName}"? This will permanently delete the group for all members.`;
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        await deleteConversation(conv.id);
+      } catch (err) {
+        alert(err.message || 'Failed to delete conversation');
+      }
+    }
   };
 
   return (
@@ -155,9 +187,22 @@ export const Sidebar = ({ onOpenNewChat, onOpenNewGroup }) => {
                 <div className="item-content">
                   <div className="item-top-row">
                     <span className="item-title">{conv.displayName}</span>
-                    <span className="item-time">
-                      {formatTimestamp(conv.lastMessage?.createdAt || conv.updatedAt)}
-                    </span>
+                    <div className="item-meta-actions">
+                      <span className="item-time">
+                        {formatTimestamp(conv.lastMessage?.createdAt || conv.updatedAt)}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-sidebar-delete"
+                        onClick={(e) => handleDeleteConversation(e, conv)}
+                        title="Delete conversation"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="item-bottom-row">

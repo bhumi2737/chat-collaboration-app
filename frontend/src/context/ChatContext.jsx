@@ -10,7 +10,9 @@ export const ChatProvider = ({ children }) => {
   const { socket } = useSocket();
 
   const [conversations, setConversations] = useState([]);
-  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [activeConversationId, setActiveConversationId] = useState(
+    () => localStorage.getItem('chat_active_conv_id') || null
+  );
   const [messages, setMessages] = useState({}); // conversationId -> Array of message objects
   const [typingUsers, setTypingUsers] = useState({}); // conversationId -> Array of { id, username, fullName }
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
@@ -25,13 +27,19 @@ export const ChatProvider = ({ children }) => {
     setIsLoadingConversations(true);
     try {
       const data = await api.get('/api/conversations');
-      setConversations(data.conversations || []);
+      const list = data.conversations || [];
+      setConversations(list);
+
+      const savedActiveId = localStorage.getItem('chat_active_conv_id');
+      if (savedActiveId && list.some((c) => c.id === savedActiveId)) {
+        fetchMessages(savedActiveId);
+      }
     } catch (err) {
       console.error('Failed to load conversations:', err);
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchMessages]);
 
   useEffect(() => {
     fetchConversations();
@@ -58,7 +66,11 @@ export const ChatProvider = ({ children }) => {
   const selectConversation = useCallback(
     async (convId) => {
       setActiveConversationId(convId);
-      if (!convId) return;
+      if (!convId) {
+        localStorage.removeItem('chat_active_conv_id');
+        return;
+      }
+      localStorage.setItem('chat_active_conv_id', convId);
 
       // Join socket room
       if (socket) {
@@ -212,6 +224,31 @@ export const ChatProvider = ({ children }) => {
       return data;
     } catch (err) {
       console.error('Error removing group member:', err);
+      throw err;
+    }
+  };
+
+  const deleteConversation = async (conversationId) => {
+    try {
+      await api.delete(`/api/conversations/${conversationId}`);
+      setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+      setMessages((prev) => {
+        const copy = { ...prev };
+        delete copy[conversationId];
+        return copy;
+      });
+      setTypingUsers((prev) => {
+        const copy = { ...prev };
+        delete copy[conversationId];
+        return copy;
+      });
+      if (activeConversationId === conversationId || activeIdRef.current === conversationId) {
+        setActiveConversationId(null);
+        localStorage.removeItem('chat_active_conv_id');
+      }
+      return true;
+    } catch (err) {
+      console.error('Error deleting conversation:', err);
       throw err;
     }
   };
@@ -439,6 +476,7 @@ export const ChatProvider = ({ children }) => {
     socket.on('conversation:created', handleConversationCreated);
     socket.on('conversation:updated', handleConversationUpdated);
     socket.on('conversation:removed', handleConversationRemoved);
+    socket.on('conversation:deleted', handleConversationRemoved);
     socket.on('typing:start', handleTypingStart);
     socket.on('typing:stop', handleTypingStop);
 
@@ -452,6 +490,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('conversation:created', handleConversationCreated);
       socket.off('conversation:updated', handleConversationUpdated);
       socket.off('conversation:removed', handleConversationRemoved);
+      socket.off('conversation:deleted', handleConversationRemoved);
       socket.off('typing:start', handleTypingStart);
       socket.off('typing:stop', handleTypingStop);
     };
@@ -478,6 +517,7 @@ export const ChatProvider = ({ children }) => {
         toggleReaction,
         createDirectChat,
         createGroupChat,
+        deleteConversation,
         updateGroupInfo,
         addGroupMember,
         removeGroupMember,

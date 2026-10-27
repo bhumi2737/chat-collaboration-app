@@ -31,17 +31,6 @@ export const AuthScreen = () => {
     }
   };
 
-  const handleDemoLogin = async (demoEmail) => {
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      await login(demoEmail, 'password123');
-    } catch (err) {
-      console.error('Demo login error:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="auth-container">
@@ -99,7 +88,7 @@ export const AuthScreen = () => {
                 <input
                   id="reg-fullname"
                   type="text"
-                  placeholder="e.g. Alice Johnson"
+                  placeholder="e.g. Your Name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
@@ -111,7 +100,7 @@ export const AuthScreen = () => {
                 <input
                   id="reg-username"
                   type="text"
-                  placeholder="e.g. alice"
+                  placeholder="e.g. username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   minLength={3}
@@ -124,7 +113,7 @@ export const AuthScreen = () => {
                 <input
                   id="reg-email"
                   type="email"
-                  placeholder="alice@example.com"
+                  placeholder="user@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -151,7 +140,7 @@ export const AuthScreen = () => {
                 <input
                   id="login-identity"
                   type="text"
-                  placeholder="alice@example.com or alice"
+                  placeholder="user@example.com or username"
                   value={emailOrUsername}
                   onChange={(e) => setEmailOrUsername(e.target.value)}
                   required
@@ -182,51 +171,6 @@ export const AuthScreen = () => {
             )}
           </button>
         </form>
-
-        {/* Quick Demo Logins */}
-        <div className="demo-accounts-section">
-          <div className="demo-accounts-divider">
-            <span>Or test with demo evaluation users</span>
-          </div>
-          <div className="demo-buttons-grid">
-            <button
-              type="button"
-              className="btn-demo"
-              onClick={() => handleDemoLogin('alice@example.com')}
-              disabled={isSubmitting}
-            >
-              <span className="demo-badge alice">A</span>
-              <div className="demo-text">
-                <strong>Alice</strong>
-                <small>Lead Admin</small>
-              </div>
-            </button>
-            <button
-              type="button"
-              className="btn-demo"
-              onClick={() => handleDemoLogin('bob@example.com')}
-              disabled={isSubmitting}
-            >
-              <span className="demo-badge bob">B</span>
-              <div className="demo-text">
-                <strong>Bob</strong>
-                <small>Team Member</small>
-              </div>
-            </button>
-            <button
-              type="button"
-              className="btn-demo"
-              onClick={() => handleDemoLogin('charlie@example.com')}
-              disabled={isSubmitting}
-            >
-              <span className="demo-badge charlie">C</span>
-              <div className="demo-text">
-                <strong>Charlie</strong>
-                <small>Team Member</small>
-              </div>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
