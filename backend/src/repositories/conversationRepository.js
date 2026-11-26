@@ -48,20 +48,7 @@ export const conversationRepository = {
         lastMessage: null
       });
 
-      await UnreadCount.insertMany([
-        { conversationId: conv._id, userId: user1Id, count: 0 },
-        { conversationId: conv._id, userId: user2Id, count: 0 }
-      ]);
-
-      return this._normalize(conv.toObject());
-    } catch (error) {
-      // If another request created the same conversation,
-      // return that conversation instead of failing.
-      const concurrent = await this.findDirect(user1Id, user2Id);
-      if (concurrent) return concurrent;
-
-      throw error;
-    }
+    return this._normalize(conv.toObject({ transform: false }));
   },
 
   async createGroup({ name, description = '', createdById, participantIds = [] }) {
@@ -91,7 +78,7 @@ export const conversationRepository = {
       }))
     );
 
-    return this._normalize(conv.toObject());
+    return this._normalize(conv.toObject({ transform: false }));
   },
 
   async findByUserId(userId) {
